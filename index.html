@@ -1,38 +1,429 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Лазерная резка металла</title>
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50 font-sans leading-normal text-gray-900">
-<header class="bg-blue-800 text-white p-4">
-    <h1 class="text-3xl font-bold">Лазерная резка металла</h1>
-    <p class="text-sm">Точность, надежность и скорость в каждой детали</p>
-</header>
-<section class="p-8">
-    <h2 class="text-2xl font-semibold mb-4">Почему выбирают нас?</h2>
-    <ul class="list-disc list-inside space-y-2">
-        <li>Точность реза до 0.1 мм, без сколов и деформаций</li>
-        <li>Сроки от 24 часов, срочные проекты запускаем в день заказа</li>
-        <li>Прозрачное ценообразование и согласование эскиза</li>
-        <li>Современные станки ЧПУ и опытные мастера</li>
-    </ul>
-</section>
-<section class="bg-white p-8">
-    <h2 class="text-2xl font-semibold mb-4">Наши услуги</h2>
-    <p>Мы выполняем лазерную резку металла для производителей, строителей, дизайнеров и частных мастеров. Работаем с чертежами в форматах DXF, DWG, PDF.</p>
-</section>
-<section class="p-8">
-    <h2 class="text-2xl font-semibold mb-4">Контакты</h2>
-    <p>Телефон: <a href="tel:+992123456789" class="text-blue-600 hover:underline">+992 123 45 67 89</a></p>
-    <p>WhatsApp: <a href="https://wa.me/992123456789" class="text-blue-600 hover:underline">+992 123 45 67 89</a></p>
-    <p>Email: <a href="mailto:info@example.com" class="text-blue-600 hover:underline">info@example.com</a></p>
-    <p>Адрес: г. Исфара, ул. Примерная, 1</p>
-</section>
-<footer class="bg-blue-800 text-white p-4">
-    <p>&copy; 2025 Лазерная резка металла. Все права защищены.</p>
-</footer>
+<body>
+<div id="root"></div>
+
+<!-- React and Babel libs -->
+<script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+<script type="text/babel">
+
+// ===== Настраиваемые данные (замените под себя) =====
+const BRAND = {
+  name: "LaserCut Khujand",
+  phone: "+992 93 000 00 00",
+  whatsapp: "+992930000000",
+  email: "sales@lasercut.tj",
+  address: "Худжанд, пр. И.Сомони 123",
+  heroOffer: "Лазерная резка металла без брака и задержек — точность до 0.1 мм, в срок или мы платим штраф",
+  subOffer: "Вы получаете готовую деталь — ровную, чистую и в день, который обещали. Без доработки болгаркой и нервотрёпки.",
+};
+
+// ===== Вспомогательные компоненты =====
+const Container = ({ children, className = "" }) => (
+  <div className={"mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 " + className}>{children}</div>
+);
+
+const Badge = ({ children }) => (
+  <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-inset ring-emerald-200">{children}</span>
+);
+
+const SectionTitle = ({ eyebrow, title, subtitle }) => (
+  <div className="mb-10 text-center">
+    {eyebrow && <Badge>{eyebrow}</Badge>}
+    <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{title}</h2>
+    {subtitle && <p className="mx-auto mt-3 max-w-2xl text-base text-gray-600">{subtitle}</p>}
+  </div>
+);
+
+const Feature = ({ title, desc }) => (
+  <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div className="mb-3 text-xl font-semibold text-gray-900">{title}</div>
+    <p className="text-gray-600">{desc}</p>
+  </div>
+);
+
+// ===== Калькулятор цены (оценка) =====
+function PriceCalculator() {
+  const [material, setMaterial] = React.useState("steel");
+  const [thickness, setThickness] = React.useState(3); // мм
+  const [length, setLength] = React.useState(3); // метры реза
+  const [holes, setHoles] = React.useState(0); // кол-во отверстий
+  const [complexity, setComplexity] = React.useState(1); // коэф 1..1.4
+  const [rush, setRush] = React.useState(false);
+
+  const quote = React.useMemo(() => {
+    // Базовые коэффициенты — отредактируйте под свою экономику
+    const materialFactor = material === "steel" ? 1 : material === "stainless" ? 1.25 : 1.15; // нерж/алюминий дороже
+    const basePerMeter = 8 * thickness * materialFactor; // сомони за 1 м реза
+    const holeFee = 3 * materialFactor; // за каждое отверстие
+    let total = basePerMeter * length * complexity + holeFee * holes;
+    if (rush) total *= 1.2; // наценка за срочность
+    // Минимальный чек на запуск
+    if (total < 120) total = 120;
+    return Math.round(total);
+  }, [material, thickness, length, holes, complexity, rush]);
+
+  return (
+    <div id="calc" className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <h3 className="text-xl font-semibold text-gray-900">Калькулятор стоимости (оценка)</h3>
+        <Badge>Прозрачная цена</Badge>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label className="text-sm font-medium text-gray-700">
+          Материал
+          <select
+            className="mt-1 w-full rounded-lg border border-gray-300 bg-white p-2"
+            value={material}
+            onChange={(e) => setMaterial(e.target.value)}
+          >
+            <option value="steel">Сталь (обыкн.)</option>
+            <option value="stainless">Нержавеющая сталь</option>
+            <option value="aluminum">Алюминий</option>
+          </select>
+        </label>
+        <label className="text-sm font-medium text-gray-700">
+          Толщина, мм
+          <input
+            type="number"
+            min={1}
+            max={20}
+            className="mt-1 w-full rounded-lg border border-gray-300 p-2"
+            value={thickness}
+            onChange={(e) => setThickness(Number(e.target.value))}
+          />
+        </label>
+        <label className="text-sm font-medium text-gray-700">
+          Длина реза, м
+          <input
+            type="number"
+            min={0}
+            step={0.1}
+            className="mt-1 w-full rounded-lg border border-gray-300 p-2"
+            value={length}
+            onChange={(e) => setLength(Number(e.target.value))}
+          />
+        </label>
+        <label className="text-sm font-medium text-gray-700">
+          Отверстия, шт
+          <input
+            type="number"
+            min={0}
+            className="mt-1 w-full rounded-lg border border-gray-300 p-2"
+            value={holes}
+            onChange={(e) => setHoles(Number(e.target.value))}
+          />
+        </label>
+        <label className="text-sm font-medium text-gray-700">
+          Сложность
+          <input
+            type="range"
+            min={1}
+            max={1.4}
+            step={0.1}
+            className="mt-2 w-full"
+            value={complexity}
+            onChange={(e) => setComplexity(Number(e.target.value))}
+          />
+          <div className="mt-1 text-xs text-gray-500">коэф.: {complexity.toFixed(1)}</div>
+        </label>
+        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <input type="checkbox" checked={rush} onChange={(e) => setRush(e.target.checked)} /> Срочный запуск
+        </label>
+      </div>
+      <div className="mt-6 flex items-end justify-between">
+        <div>
+          <div className="text-sm text-gray-500">Ориентировочная стоимость</div>
+          <div className="text-3xl font-bold tracking-tight text-gray-900">≈ {quote} сомони</div>
+          <div className="text-xs text-gray-500">* Итоговая цена уточняется по DXF/DWG</div>
+        </div>
+        <a href="#quote" className="rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-gray-800">
+          Получить точный расчёт
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ===== Форма заявки (без бэкенда — mailto + WhatsApp) =====
+function QuoteForm() {
+  const [name, setName] = React.useState("");
+  const [phone, setPhone] = React.useState("");
+  const [message, setMessage] = React.useState("Хочу запустить резку. Толщина 3 мм, лист 1×2 м, есть DXF.");
+
+  const whatsappLink = React.useMemo(() => {
+    const text = encodeURIComponent(`Здравствуйте! ${message}\nИмя: ${name}\nТел: ${phone}`);
+    return `https://wa.me/${BRAND.whatsapp.replace(/\D/g, "")}?text=${text}`;
+  }, [name, phone, message]);
+
+  const mailto = React.useMemo(() => {
+    const subject = encodeURIComponent("Заявка на лазерную резку");
+    const body = encodeURIComponent(`${message}\n\nИмя: ${name}\nТелефон: ${phone}`);
+    return `mailto:${BRAND.email}?subject=${subject}&body=${body}`;
+  }, [name, phone, message]);
+
+  return (
+    <div id="quote" className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h3 className="mb-4 text-xl font-semibold text-gray-900">Заявка на точный расчёт</h3>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label className="text-sm font-medium text-gray-700">
+          Ваше имя
+          <input className="mt-1 w-full rounded-lg border border-gray-300 p-2" value={name} onChange={(e) => setName(e.target.value)} />
+        </label>
+        <label className="text-sm font-medium text-gray-700">
+          Телефон/WhatsApp
+          <input className="mt-1 w-full rounded-lg border border-gray-300 p-2" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </label>
+      </div>
+      <label className="mt-4 block text-sm font-medium text-gray-700">
+        Кратко опишите задачу
+        <textarea rows={4} className="mt-1 w-full rounded-lg border border-gray-300 p-2" value={message} onChange={(e) => setMessage(e.target.value)} />
+      </label>
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <a href={whatsappLink} target="_blank" className="rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-emerald-500">Отправить в WhatsApp</a>
+        <a href={mailto} className="rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow hover:bg-gray-800">Отправить на email</a>
+        <a href={`tel:${BRAND.phone}`} className="rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50">Позвонить</a>
+      </div>
+    </div>
+  );
+}
+
+// ===== Главный компонент =====
+const App = () => {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 text-gray-900">
+      {/* Навбар */}
+      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 backdrop-blur">
+        <Container className="flex h-16 items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-900 text-white">LC</div>
+            <div>
+              <div className="text-sm font-semibold leading-none">{BRAND.name}</div>
+              <div className="text-xs text-gray-500">Лазерная резка металла</div>
+            </div>
+          </div>
+          <nav className="hidden gap-6 text-sm font-medium text-gray-700 md:flex">
+            <a href="#trust" className="hover:text-gray-900">Почему мы</a>
+            <a href="#think" className="hover:text-gray-900">Мысли клиента</a>
+            <a href="#calc" className="hover:text-gray-900">Калькулятор</a>
+            <a href="#cases" className="hover:text-gray-900">Кейсы</a>
+            <a href="#quote" className="hover:text-gray-900">Заявка</a>
+          </nav>
+          <div className="hidden items-center gap-3 md:flex">
+            <a href={`tel:${BRAND.phone}`} className="text-sm font-semibold text-gray-900">{BRAND.phone}</a>
+            <a href="#quote" className="rounded-xl bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800">Рассчитать</a>
+          </div>
+        </Container>
+      </header>
+
+      {/* Герой-блок */}
+      <section className="relative overflow-hidden border-b border-gray-200 bg-white">
+        <Container className="relative z-10 grid grid-cols-1 items-center gap-8 py-12 sm:py-16 lg:grid-cols-2">
+          <div>
+            <Badge>Точность • Сроки • Гарантии</Badge>
+            <h1 className="mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl">{BRAND.heroOffer}</h1>
+            <p className="mt-4 max-w-2xl text-lg text-gray-600">{BRAND.subOffer}</p>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <a href="#quote" className="rounded-xl bg-gray-900 px-6 py-3 text-sm font-semibold text-white shadow hover:bg-gray-800">Рассчитать стоимость</a>
+              <a href="#calc" className="rounded-xl border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-800 hover:bg-gray-50">Смотреть калькулятор</a>
+            </div>
+            <div className="mt-6 grid grid-cols-3 gap-4 text-center sm:max-w-md">
+              <div className="rounded-xl bg-gray-50 p-4">
+                <div className="text-2xl font-bold">0.1 мм</div>
+                <div className="text-xs text-gray-500">Точность реза</div>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4">
+                <div className="text-2xl font-bold">98%</div>
+                <div className="text-xs text-gray-500">Сдаём раньше срока</div>
+              </div>
+              <div className="rounded-xl bg-gray-50 p-4">
+                <div className="text-2xl font-bold">2470 м²</div>
+                <div className="text-xs text-gray-500">Металла без брака</div>
+              </div>
+            </div>
+          </div>
+          <div className="relative">
+            {/* Иллюстрация-заглушка */}
+            <div className="aspect-[4/3] w-full rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 p-1 shadow-xl">
+              <div className="flex h-full w-full items-center justify-center rounded-2xl bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.08),transparent_60%)]">
+                <div className="text-center text-white">
+                  <div className="text-xs uppercase tracking-widest text-gray-300">Лазерный контур</div>
+                  <div className="mt-2 text-3xl font-bold">Чистая кромка • Без окалины</div>
+                  <div className="mt-2 text-sm text-gray-300">Макро‑качество, готово к сборке</div>
+                </div>
+              </div>
+            </div>
+            <div className="pointer-events-none absolute -bottom-10 -right-10 hidden h-56 w-56 rounded-full bg-emerald-300/30 blur-3xl sm:block" />
+          </div>
+        </Container>
+      </section>
+
+      {/* Почему нам доверяют */}
+      <section id="trust" className="py-14 sm:py-16">
+        <Container>
+          <SectionTitle eyebrow="Почему нам доверяют" title="Контроль, прозрачность, ответственность" subtitle="Мы отвечаем за результат: точность, сроки и честную смету." />
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+            <Feature title="Точность до 0.1 мм" desc="Прецизионные станки ЧПУ. Деталь встанет на место без доработки." />
+            <Feature title="Сроки под контракт" desc="Если опоздаем — штраф. Ваши дедлайны — наша ответственность." />
+            <Feature title="Прозрачная цена" desc="Фиксируем смету до запуска. Никаких сюрпризов в счёте." />
+            <Feature title="Гарантия без брака" desc="Переделаем за свой счёт, если деталь не совпадает с чертежом." />
+          </div>
+        </Container>
+      </section>
+
+      {/* Мы знаем, что вы думаете */}
+      <section id="think" className="border-y border-gray-200 bg-white py-14 sm:py-16">
+        <Container>
+          <SectionTitle eyebrow="Мыслит ваша голова" title="Мы знаем, что вы думаете — и отвечаем заранее" subtitle="Снимаем страхи до того, как они станут конфликтом." />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {[{
+              q: "Опять испортят металл.",
+              a: "Берём ответственность за материал. Любой брак компенсируем.",
+            }, {
+              q: "Будут тянуть неделю.",
+              a: "Срочные заказы запускаем в день обращения. Реальные сроки в договоре.",
+            }, {
+              q: "Назовут одну цену, потом — больше.",
+              a: "Фиксируем итоговую стоимость до старта. Смета прозрачна.",
+            }, {
+              q: "Не поймут ТЗ.",
+              a: "Согласуем карту реза и эскиз перед запуском. Ошибки исключены.",
+            }].map((item, i) => (
+              <div key={i} className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
+                <div className="mb-2 text-sm font-semibold text-gray-900">«{item.q}»</div>
+                <div className="text-gray-700">{item.a}</div>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Калькулятор + Заявка */}
+      <section className="py-14 sm:py-16">
+        <Container className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <PriceCalculator />
+          <QuoteForm />
+        </Container>
+      </section>
+
+      {/* Кейсы */}
+      <section id="cases" className="border-t border-gray-200 bg-white py-14 sm:py-16">
+        <Container>
+          <SectionTitle eyebrow="Кейсы" title="Реальные задачи — реальные цифры" subtitle="Фотографии и короткие выводы по каждому проекту." />
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((n) => (
+              <figure key={n} className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50">
+                <div className="aspect-[4/3] w-full bg-[repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb_10px,#f3f4f6_10px,#f3f4f6_20px)]" />
+                <figcaption className="p-4 text-sm text-gray-700">
+                  <div className="font-semibold text-gray-900">Деталь #{n}</div>
+                  <div className="mt-1 text-xs text-gray-500">Срок: 48 ч • Точность: 0.05 мм • Клиент: производитель конструкций</div>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Для кого работаем */}
+      <section className="py-14 sm:py-16">
+        <Container>
+          <SectionTitle eyebrow="Кому полезны" title="Работаем с профессионалами и мастерами" />
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
+            <Feature title="Производственные компании" desc="Конструкции, мебель, элементы интерьера и фасада." />
+            <Feature title="Строительные подрядчики" desc="Металлокаркас, лестницы, ограждения, навесы." />
+            <Feature title="Дизайнеры и мастера" desc="Декор, инсталляции, выставочные элементы." />
+            <Feature title="Авто и ремонтные цеха" desc="Кронштейны, площадки, индивидуальные детали." />
+          </div>
+        </Container>
+      </section>
+
+      {/* Доверие & отзывы */}
+      <section className="border-y border-gray-200 bg-white py-14 sm:py-16">
+        <Container>
+          <SectionTitle eyebrow="Социальное доказательство" title="Отзывы — своими словами" />
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {[{
+              name: "Олимон Строй",
+              text: "Сделали быстрее, чем ожидали. Прислали фото прогресса, держали в курсе. Детали сели идеально.",
+            }, {
+              name: "SteelPro",
+              text: "Цена совпала с расчётом, без сюрпризов. По срокам — день в день.",
+            }, {
+              name: "Atelier 21",
+              text: "Внимательно слушают. Карта реза согласована — без вопросов на монтаже.",
+            }].map((r, i) => (
+              <div key={i} className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
+                <div className="text-sm text-gray-700">“{r.text}”</div>
+                <div className="mt-3 text-xs font-semibold text-gray-900">{r.name}</div>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Финальный оффер */}
+      <section className="py-14 sm:py-16">
+        <Container>
+          <div className="rounded-3xl bg-gray-900 px-6 py-10 text-center text-white sm:px-12">
+            <div className="mx-auto max-w-3xl">
+              <h3 className="text-2xl font-bold sm:text-3xl">Вы платите только за точный результат</h3>
+              <p className="mt-3 text-gray-300">Без брака, без задержек, без сюрпризов. Запустим в работу в течение 1 часа.</p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <a href="#quote" className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-100">Заказать резку</a>
+                <a href="#calc" className="rounded-xl border border-white/30 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10">Посчитать стоимость</a>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* Футер */}
+      <footer className="border-t border-gray-200 bg-white">
+        <Container className="grid grid-cols-1 gap-6 py-10 sm:grid-cols-3">
+          <div>
+            <div className="text-lg font-bold">{BRAND.name}</div>
+            <div className="mt-2 text-sm text-gray-600">Лазерная резка металла • Худжанд</div>
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-gray-900">Контакты</div>
+            <div className="mt-2 space-y-2 text-sm text-gray-600">
+              <div>Тел.: <a className="font-semibold text-gray-900" href={`tel:${BRAND.phone}`}>{BRAND.phone}</a></div>
+              <div>WhatsApp: <a className="font-semibold text-gray-900" href={`https://wa.me/${BRAND.whatsapp.replace(/\D/g, "")}`} target="_blank">{BRAND.whatsapp}</a></div>
+              <div>Email: <a className="font-semibold text-gray-900" href={`mailto:${BRAND.email}`}>{BRAND.email}</a></div>
+              <div>Адрес: {BRAND.address}</div>
+            </div>
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-gray-900">Работа с чертежами</div>
+            <div className="mt-2 text-sm text-gray-600">Принимаем DXF, DWG, PDF. При необходимости поможем подготовить файл.</div>
+            <a href="#quote" className="mt-4 inline-flex rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800">Отправить задачу</a>
+          </div>
+        </Container>
+        <div className="bg-gray-50 py-4 text-center text-xs text-gray-500">© {new Date().getFullYear()} {BRAND.name}. Все права защищены.</div>
+      </footer>
+
+      {/* Мобильный фиксированный бар */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 p-3 backdrop-blur md:hidden">
+        <Container className="flex items-center justify-between px-0">
+          <a href={`tel:${BRAND.phone}`} className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900">Позвонить</a>
+          <a href="#quote" className="rounded-xl bg-gray-900 px-5 py-2 text-sm font-semibold text-white">Рассчитать</a>
+        </Container>
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('root'));
+
+</script>
 </body>
 </html>
